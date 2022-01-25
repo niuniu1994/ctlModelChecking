@@ -13,10 +13,7 @@ import ctl.logicOperators.AND;
 import ctl.logicOperators.NOT;
 import ctl.logicOperators.OR;
 
-import ctl.operators.AF;
-import ctl.operators.AU;
-import ctl.operators.EU;
-import ctl.operators.EX;
+import ctl.operators.*;
 import kripke.Kripke;
 import kripke.State;
 
@@ -131,6 +128,11 @@ public class CtlTest {
         assertEquals(False(),ctlModelChecker.afChecker(AF.af(atom("c"))));
         assertEquals(True(),ctlModelChecker.afChecker(AF.af(atom("a","b"))));
         assertEquals(False(),ctlModelChecker.afChecker(AF.af(atom("a","c"))));
+    }
+
+    @Test
+    public void axCheckerTest(){
+        assertEquals(true,ctlModelChecker.checkCtlFormula(AX.ax(and(atom("a"),atom("b")))));
     }
 
     @Test
