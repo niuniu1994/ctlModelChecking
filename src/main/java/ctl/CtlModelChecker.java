@@ -71,11 +71,11 @@ public class CtlModelChecker {
      */
     public Formula notChecker(Formula formula) {
 
-        if (formula instanceof Atom) {
+        if (formula instanceof Atom atomFormula) {
             List<Set<String>> combinations = new ArrayList<>(kripke.getCombinations());
             List<Atom> atomList = new ArrayList<>();
             //remove all vals in atom
-            ((Atom) formula).getAtomList().forEach(atom -> {
+            atomFormula.getAtomList().forEach(atom -> {
                 combinations.remove(atom.getValueSet());
             });
 
@@ -115,13 +115,13 @@ public class CtlModelChecker {
             return andChecker(left, ctlFormulaChecker(right));
         } else if (!(left instanceof CalculableFormula) && right instanceof CalculableFormula) {
             return andChecker(ctlFormulaChecker(left), right);
-        } else if (left instanceof Atom && right instanceof Atom) {
+        } else if (left instanceof Atom atomLeftFormula && right instanceof Atom atomRightFormula) {
             // (a or b) and ( c or d or e) => (ac or ad or ae or bc or bd or be)
             Set<Set<String>> valsSetSet = new HashSet<>();
 
             //generate new states
-            ((Atom) left).getAtomList().forEach(atomLeft -> {
-                ((Atom) right).getAtomList().forEach(atomRight -> {
+            atomLeftFormula.getAtomList().forEach(atomLeft -> {
+                atomRightFormula.getAtomList().forEach(atomRight -> {
                     Set<String> res = Stream.concat(atomLeft.getValueSet().stream(), atomRight.getValueSet().stream()).collect(Collectors.toSet());
                     //no duplicate exist than add in list
                     valsSetSet.add(res);
@@ -154,8 +154,8 @@ public class CtlModelChecker {
             return orChecker(left, ctlFormulaChecker(right));
         } else if (!(left instanceof CalculableFormula) && right instanceof CalculableFormula) {
             return orChecker(ctlFormulaChecker(left), right);
-        } else if (left instanceof Atom && right instanceof Atom) {
-            Set<Set<String>> valsSetSet = Stream.concat(((Atom) left).getAtomList().stream(), ((Atom) right).getAtomList().stream()).map(Atom::getValueSet).collect(Collectors.toSet());
+        } else if (left instanceof Atom atomLeft && right instanceof Atom atomRight) {
+            Set<Set<String>> valsSetSet = Stream.concat(atomLeft.getAtomList().stream(), atomRight.getAtomList().stream()).map(Atom::getValueSet).collect(Collectors.toSet());
             List<Atom> atomList = valsSetSet.stream().map(Atom::new).collect(Collectors.toList());
             Atom atom = atomList.get(0);
             atom.setAtomList(atomList);
@@ -171,8 +171,8 @@ public class CtlModelChecker {
      * @return
      */
     public Formula exChecker(Formula formula) {
-        if (formula instanceof Atom) {
-            for (Atom atom : ((Atom) formula).getAtomList()) {
+        if (formula instanceof Atom atomFormula) {
+            for (Atom atom : atomFormula.getAtomList()) {
                 if (kripke.getTransitions().stream().anyMatch(transition -> transition.getEnd().getAtoms()
                         .stream().flatMap(atom1 -> atom1.getValueSet().stream()).collect(Collectors.toSet()).containsAll(atom.getValueSet()))) {
                     log.info("{} => {}", EX.ex(formula), True());
@@ -181,10 +181,10 @@ public class CtlModelChecker {
             }
             log.info("{} => {}", EX.ex(formula), False());
             return False();
-        } else if (formula instanceof True) {
-            return True();
-        } else if (formula instanceof False) {
-            return False();
+        } else if (formula instanceof True t) {
+            return t;
+        } else if (formula instanceof False f) {
+            return f;
         } else {
             return exChecker(ctlFormulaChecker(formula));
         }
@@ -192,8 +192,7 @@ public class CtlModelChecker {
 
 
     public Formula afChecker(Formula formula) {
-            if (formula instanceof Atom) {
-                Atom atom = (Atom) formula;
+            if (formula instanceof Atom atom) {
                 //1.Mark all states satisfying atom  to v
                 Set<State> markedStates = markStates(atom);
                 Set<State> unmarkedStates;
@@ -225,21 +224,21 @@ public class CtlModelChecker {
                 } while (!start.equals(unmarkedStates));
 
                 return unmarkedStates.isEmpty() ? True() : False();
-            } else if (formula instanceof True) {
-                return True();
-            } else if (formula instanceof False) {
-                return False();
+            } else if (formula instanceof True t) {
+                return t;
+            } else if (formula instanceof False f) {
+                return f;
             } else {
                 return afChecker(ctlFormulaChecker(formula));
             }
     }
 
     public Formula euChecker(Formula left, Formula right) {
-        if (right instanceof True) {
-            return True();
-        } else if (right instanceof False) {
-            return False();
-        } else if (left instanceof CalculableFormula && !(right instanceof CalculableFormula)) {
+        if (right instanceof True t) {
+            return t;
+        } else if (right instanceof False f) {
+            return f;
+        } else if (left instanceof CalculableFormula  && !(right instanceof CalculableFormula)) {
             return euChecker(left, ctlFormulaChecker(right));
         } else if (!(left instanceof CalculableFormula) && right instanceof CalculableFormula) {
             return euChecker(ctlFormulaChecker(left), right);
@@ -259,9 +258,7 @@ public class CtlModelChecker {
                 return True();
             }
             return False();
-        } else if (left instanceof Atom && right instanceof Atom) {
-            Atom leftAtom = (Atom) left;
-            Atom rightAtom = (Atom) right;
+        } else if (left instanceof Atom leftAtom && right instanceof Atom rightAtom) {
             //1.Mark all states satisfying rightAtom to v
             Set<State> rightMarkedStates = markStates(rightAtom);
             Set<State> leftUnmarkedStates = markStates(leftAtom);
@@ -310,20 +307,17 @@ public class CtlModelChecker {
     private Formula ctlFormulaChecker(Formula formulaToCheck) {
         if (formulaToCheck instanceof CalculableFormula) {
             return formulaToCheck;
-        } else if (formulaToCheck instanceof NOT) {
-            return notChecker(((NOT) formulaToCheck).getFormula());
-        } else if (formulaToCheck instanceof AND) {
-            AND and = (AND) formulaToCheck;
+        } else if (formulaToCheck instanceof NOT not) {
+            return notChecker(not.getFormula());
+        } else if (formulaToCheck instanceof AND and) {
             return andChecker(and.getLeftFormula(), (and.getRightFormula()));
-        } else if (formulaToCheck instanceof OR) {
-            OR or = (OR) formulaToCheck;
+        } else if (formulaToCheck instanceof OR or) {
             return orChecker(or.getLeftFormula(), or.getRightFormula());
-        } else if (formulaToCheck instanceof EX) {
-            return exChecker(((EX) formulaToCheck).getFormula());
-        } else if (formulaToCheck instanceof AF) {
-            return afChecker(((AF) formulaToCheck).getFormula());
-        } else if (formulaToCheck instanceof EU) {
-            EU eu = (EU) formulaToCheck;
+        } else if (formulaToCheck instanceof EX ex) {
+            return exChecker(ex.getFormula());
+        } else if (formulaToCheck instanceof AF af) {
+            return afChecker(af.getFormula());
+        } else if (formulaToCheck instanceof EU eu) {
             return euChecker(eu.getLeftFormula(), eu.getRightFormula());
         }
         log.error("shouldn't not reach here");
