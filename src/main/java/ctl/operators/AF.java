@@ -1,8 +1,6 @@
 package ctl.operators;
 
 import ctl.Formula;
-import static ctl.logicOperators.NOT.*;
-import static ctl.operators.EG.*;
 import lombok.*;
 
 @AllArgsConstructor

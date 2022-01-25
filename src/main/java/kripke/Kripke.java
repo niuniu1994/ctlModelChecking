@@ -1,5 +1,6 @@
 package kripke;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,6 +17,7 @@ public class Kripke {
     private Set<State> states;
     private Set<State> initStates;
     private Set<Transition> transitions;
+    @JsonIgnore
     private List<Set<String>> combinations;
 
 
@@ -24,7 +26,7 @@ public class Kripke {
         this.initStates = new HashSet<>();
         this.transitions = new HashSet<>();
         this.vals = new HashSet<>();
-        this.combinations = new ArrayList<>();
+
     }
 
     public Kripke(Set<String> vals, Set<State> states, Set<State> initStates, Set<Transition> transitions) {
@@ -32,8 +34,6 @@ public class Kripke {
         this.states = states;
         this.initStates = initStates;
         this.transitions = transitions;
-        this.combinations = new ArrayList<>();
-        initCombinations();
     }
 
     public void addTransition(State start, State end){
@@ -53,7 +53,19 @@ public class Kripke {
         return new Kripke();
     }
 
+
+    public List<Set<String>> getCombinations() {
+        if (combinations == null){
+            initCombinations();
+        }
+        return combinations;
+    }
+
     public void initCombinations() {
+        if (combinations == null){
+            combinations = new ArrayList<>();
+        }
+
        int len = vals.size();
        if (len == 0) {
            return;

@@ -5,16 +5,19 @@ import static  ctl.logicOperators.NOT.*;
 import ctl.Formula;
 import lombok.*;
 
+/**
+ * @author kainingxin
+ */
 @AllArgsConstructor
 @Getter
 @Setter
 @EqualsAndHashCode
-public class IMPLIES implements Formula{
+public class IMPLY implements Formula{
     private Formula leftFormula;
     private Formula rightFormula;
 
-    public static IMPLIES implies(Formula leftFormula,Formula rightFormula){
-        return new IMPLIES(leftFormula,rightFormula);
+    public static IMPLY imply(Formula leftFormula, Formula rightFormula){
+        return new IMPLY(leftFormula,rightFormula);
     }
 
     @Override

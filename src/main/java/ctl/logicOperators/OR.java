@@ -19,7 +19,7 @@ public class OR implements Formula {
 
     @Override
     public Formula convert() {
-        return not(and(not(leftFormula.convert()),not(rightFormula.convert())));
+        return or(leftFormula.convert(),rightFormula.convert());
     }
 
     @Override

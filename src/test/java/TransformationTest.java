@@ -20,7 +20,7 @@ public class TransformationTest {
 
     @Test
     public void convert_test_1(){
-        Formula formula2 = AU.au(True.True(),atom("a")).convert();
+        Formula formula2 = AU.au(atom("b"),atom("c")).convert();
         Formula formula = ag(atom("2")).convert();
         Formula formula1 = AND.and(ax(ag(ex(atom("s")))),ag(atom("2"))).convert();
 

@@ -5,6 +5,9 @@ import static ctl.logicOperators.NOT.*;
 import static ctl.operators.AF.*;
 import lombok.*;
 
+/**
+ * @author kainingxin
+ */
 @AllArgsConstructor
 @Getter
 @Setter
@@ -18,7 +21,7 @@ public class EG implements Formula {
 
     @Override
     public Formula convert() {
-        return not(af(not(formula.convert())));
+        return not(af(not(formula))).convert();
     }
 
     @Override

@@ -2,6 +2,8 @@ import com.google.common.collect.Sets;
 import ctl.CtlModelChecker;
 import ctl.Formula;
 import ctl.atoms.Atom;
+
+import static ctl.atoms.True.True;
 import static ctl.logicOperators.AND.*;
 import static ctl.logicOperators.NOT.*;
 import static ctl.atoms.Atom.*;
@@ -11,17 +13,20 @@ import ctl.logicOperators.AND;
 import ctl.logicOperators.NOT;
 import ctl.logicOperators.OR;
 
+import ctl.operators.AF;
+import ctl.operators.AU;
+import ctl.operators.EU;
 import ctl.operators.EX;
 import kripke.Kripke;
 import kripke.State;
+
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static ctl.logicOperators.NOT.*;
-import static ctl.atoms.Atom.*;
+
 
 import java.util.Arrays;
-import java.util.HashSet;
+
 
 public class CtlTest {
     private CtlModelChecker ctlModelChecker;
@@ -116,11 +121,31 @@ public class CtlTest {
     }
 
     @Test
-    public void exCheckedTest(){
+    public void exCheckerTest(){
         Atom atom = new Atom("a","c");
         assertEquals(False(),ctlModelChecker.exChecker(EX.ex(atom("a","c"))));
-
-
     }
 
+    @Test
+    public void afCheckerTest(){
+        assertEquals(False(),ctlModelChecker.afChecker(AF.af(atom("c"))));
+        assertEquals(True(),ctlModelChecker.afChecker(AF.af(atom("a","b"))));
+        assertEquals(False(),ctlModelChecker.afChecker(AF.af(atom("a","c"))));
+    }
+
+    @Test
+    public void euCheckTest(){
+        assertEquals(False(),ctlModelChecker.euChecker(False(),atom("c")));
+        assertEquals(True(),ctlModelChecker.euChecker(atom("b"),atom("c")));
+        assertEquals(True(),ctlModelChecker.euChecker(atom("a"),atom("b")));
+        assertEquals(False(),ctlModelChecker.euChecker(atom("a"),atom("c")));
+        assertEquals(True(),ctlModelChecker.euChecker(and(atom("a"),atom("b")),atom("b")));
+    }
+
+    @Test
+    public void ctlModelChecker(){
+        assertEquals(false,ctlModelChecker.checkCtlFormula(AU.au(atom("b"),atom("c"))));
+        assertEquals(true,ctlModelChecker.checkCtlFormula(EU.eu(atom("b"),atom("c"))));
+
+    }
 }
