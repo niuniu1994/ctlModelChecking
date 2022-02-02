@@ -1,0 +1,194 @@
+{
+  "vals": [
+    "a",
+    "b",
+    "c"
+  ],
+  "states": [
+    {
+      "name": "s0",
+      "atoms": [
+        {
+          "value": "a"
+        },
+        {
+          "value": "b"
+        }
+      ]
+    },
+    {
+      "name": "s1",
+      "atoms": [
+        {
+          "value": "b"
+        }
+      ]
+    },
+    {
+      "name": "s3",
+      "atoms": [
+        {
+          "value": "c"
+        }
+      ]
+    },
+    {
+      "name": "s2",
+      "atoms": [
+        {
+          "value": "b"
+        }
+      ]
+    }
+  ],
+  "initStates": [
+    {
+      "name": "s0",
+      "atoms": [
+        {
+          "value": "a"
+        },
+        {
+          "value": "b"
+        }
+      ]
+    }
+  ],
+  "transitions": [
+    {
+      "start": {
+        "name": "s2",
+        "atoms": [
+          {
+            "value": "b"
+          }
+        ]
+      },
+      "end": {
+        "name": "s0",
+        "atoms": [
+          {
+            "value": "a"
+          },
+          {
+            "value": "b"
+          }
+        ]
+      }
+    },
+    {
+      "start": {
+        "name": "s0",
+        "atoms": [
+          {
+            "value": "a"
+          },
+          {
+            "value": "b"
+          }
+        ]
+      },
+      "end": {
+        "name": "s1",
+        "atoms": [
+          {
+            "value": "b"
+          }
+        ]
+      }
+    },
+    {
+      "start": {
+        "name": "s1",
+        "atoms": [
+          {
+            "value": "b"
+          }
+        ]
+      },
+      "end": {
+        "name": "s1",
+        "atoms": [
+          {
+            "value": "b"
+          }
+        ]
+      }
+    },
+    {
+      "start": {
+        "name": "s2",
+        "atoms": [
+          {
+            "value": "b"
+          }
+        ]
+      },
+      "end": {
+        "name": "s3",
+        "atoms": [
+          {
+            "value": "c"
+          }
+        ]
+      }
+    },
+    {
+      "start": {
+        "name": "s1",
+        "atoms": [
+          {
+            "value": "b"
+          }
+        ]
+      },
+      "end": {
+        "name": "s2",
+        "atoms": [
+          {
+            "value": "b"
+          }
+        ]
+      }
+    },
+    {
+      "start": {
+        "name": "s3",
+        "atoms": [
+          {
+            "value": "c"
+          }
+        ]
+      },
+      "end": {
+        "name": "s1",
+        "atoms": [
+          {
+            "value": "b"
+          }
+        ]
+      }
+    },
+    {
+      "start": {
+        "name": "s0",
+        "atoms": [
+          {
+            "value": "a"
+          },
+          {
+            "value": "b"
+          }
+        ]
+      },
+      "end": {
+        "name": "s2",
+        "atoms": [
+          {
+            "value": "b"
+          }
+        ]
+      }
+    }
+  ]
+}
