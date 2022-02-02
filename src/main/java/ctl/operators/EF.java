@@ -10,6 +10,7 @@ import static ctl.atoms.True.*;
 @Setter
 @EqualsAndHashCode
 public class EF implements Formula {
+    @NonNull
     private Formula formula;
 
     public static EF ef(Formula formula){

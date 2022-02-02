@@ -10,6 +10,7 @@ import lombok.*;
 @Setter
 @EqualsAndHashCode
 public class AX implements Formula {
+    @NonNull
     private Formula formula;
 
     public static AX ax(Formula formula){

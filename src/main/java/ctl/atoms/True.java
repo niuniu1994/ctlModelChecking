@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @EqualsAndHashCode
-public class True implements Formula,CalculableFormula{
+public class True implements Formula{
 
     public static True True(){
         return new True();

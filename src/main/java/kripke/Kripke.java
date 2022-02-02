@@ -1,25 +1,26 @@
 package kripke;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 
 @Setter
 @Getter
 @EqualsAndHashCode
 public class Kripke {
-
+    // Kripke = (S, I, R, L)
+    //values of atomic proposition
     private Set<String> vals;
+    //a finite set of states S.
     private Set<State> states;
+    //a set of initial states I ⊆ S.
     private Set<State> initStates;
+    //a transition relation R ⊆ S × S such that R is left-total
     private Set<Transition> transitions;
-    @JsonIgnore
-    private List<Set<String>> combinations;
-
 
     public Kripke() {
         this.states = new HashSet<>();
@@ -49,43 +50,4 @@ public class Kripke {
         this.states.add(state);
     }
 
-    public static Kripke readFromFile(String path){
-        return new Kripke();
-    }
-
-
-    public List<Set<String>> getCombinations() {
-        if (combinations == null){
-            initCombinations();
-        }
-        return combinations;
-    }
-
-    public void initCombinations() {
-        if (combinations == null){
-            combinations = new ArrayList<>();
-        }
-
-       int len = vals.size();
-       if (len == 0) {
-           return;
-       }
-       Deque<String> stack = new ArrayDeque<>();
-       dfs(this.vals.toArray(new String[vals.size()]),len,0,stack);
-    }
-
-    private void dfs(String[] vals , int len, int level, Deque<String> stack){
-        if (level == len){
-            if (!stack.isEmpty()){
-                combinations.add(new HashSet<>(stack));
-            }
-            return;
-        }
-
-        dfs(vals,len,level + 1,stack);
-
-        stack.addLast(vals[level]);
-        dfs(vals,len,level + 1, stack);
-        stack.removeLast();
-    }
 }

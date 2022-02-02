@@ -10,7 +10,7 @@ import static ctl.operators.EF.*;
 @Setter
 @EqualsAndHashCode
 public class AG implements Formula{
-
+    @NonNull
     private Formula formula;
 
     public static AG ag (Formula formula){

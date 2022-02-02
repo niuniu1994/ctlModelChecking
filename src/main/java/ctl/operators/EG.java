@@ -13,7 +13,7 @@ import lombok.*;
 @Setter
 @EqualsAndHashCode
 public class EG implements Formula {
-
+    @NonNull
     private Formula formula;
     public static EG eg(Formula formula){
         return new EG(formula);

@@ -13,10 +13,12 @@ import lombok.*;
 @Setter
 @EqualsAndHashCode
 public class IMPLY implements Formula{
+    @NonNull
     private Formula leftFormula;
+    @NonNull
     private Formula rightFormula;
 
-    public static IMPLY imply(Formula leftFormula, Formula rightFormula){
+    public static IMPLY imply( Formula leftFormula, Formula rightFormula){
         return new IMPLY(leftFormula,rightFormula);
     }
 

@@ -8,6 +8,7 @@ import lombok.*;
 @Setter
 @EqualsAndHashCode
 public class EX implements Formula {
+    @NonNull
     private Formula formula;
 
     public static EX ex(Formula formula){
@@ -23,6 +24,5 @@ public class EX implements Formula {
     public String toString() {
         return String.format("EX(%s)",formula);
     }
-
 
 }

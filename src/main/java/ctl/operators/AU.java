@@ -17,7 +17,9 @@ import static ctl.operators.AF.*;
 @Setter
 @EqualsAndHashCode
 public class AU implements Formula {
+    @NonNull
     private Formula leftFormula;
+    @NonNull
     private Formula rightFormula;
 
     public static AU au(Formula leftFormula,Formula rightFormula) {

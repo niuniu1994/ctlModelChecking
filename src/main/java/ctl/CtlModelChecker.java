@@ -1,8 +1,7 @@
 package ctl;
 
-import com.google.common.collect.Sets;
+
 import ctl.atoms.Atom;
-import ctl.atoms.CalculableFormula;
 import ctl.atoms.False;
 import ctl.atoms.True;
 import ctl.logicOperators.AND;
@@ -14,17 +13,11 @@ import ctl.operators.EX;
 import kripke.Kripke;
 import kripke.State;
 import kripke.Transition;
-import lombok.extern.log4j.Log4j2;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static ctl.atoms.False.False;
-import static ctl.atoms.True.True;
-
-
-@Log4j2
 public class CtlModelChecker {
 
     private Kripke kripke;
@@ -39,105 +32,40 @@ public class CtlModelChecker {
      * @param atomToCheck
      * @return
      */
-    public boolean atomChecker(Atom atomToCheck) {
-        for (Atom atom : atomToCheck.getAtomList()) {
-            if (kripke.getStates().stream().anyMatch(state -> state.getAtoms().stream()
-                    .flatMap(atom1 -> atom1.getValueSet().stream()).collect(Collectors.toSet()).containsAll(atom.getValueSet()))) {
-                return true;
-            }
-        }
-        return false;
+    public Set<State> atomChecker(Atom atomToCheck) {
+        return  kripke.getStates().stream().filter(state -> state.getAtoms().contains(atomToCheck)).collect(Collectors.toSet());
     }
 
 
-    public boolean checkCtlFormula(Formula formulaToCheck) {
+    public List<String> checkCtlFormula(Formula formulaToCheck) {
+        if (formulaToCheck == null) {
+            System.out.println("formula is empty");
+            return new ArrayList<>();
+        }
+
         Formula formula = formulaToCheck.convert();
-        log.info("{} => {}", formulaToCheck, formula);
-        formula = ctlFormulaChecker(formula);
-        if (formula instanceof True) {
-            return true;
-        } else if (formula instanceof False) {
-            return false;
-        } else {
-            return atomChecker((Atom) formula);
-        }
+        System.out.println( formulaToCheck + " => " + formula);
+        return ctlFormulaChecker(formula).stream().map(State::getName).sorted().collect(Collectors.toList());
     }
 
     /**
-     * Not formula
      *
-     * @param formula
+     * @param states
      * @return
      */
-    public Formula notChecker(Formula formula) {
-
-        if (formula instanceof Atom atomFormula) {
-            List<Set<String>> combinations = new ArrayList<>(kripke.getCombinations());
-            List<Atom> atomList = new ArrayList<>();
-            //remove all vals in atom
-            atomFormula.getAtomList().forEach(atom -> {
-                combinations.remove(atom.getValueSet());
-            });
-
-            //add the rest in the atomlist
-            combinations.forEach(comb -> atomList.add(new Atom(comb)));
-
-            Atom atom = atomList.get(0);
-            atom.setAtomList(atomList);
-            log.info("not( {} )=>  {}", formula, atom);
-            return atom;
-        } else if (formula instanceof True t) {
-            return t;
-        } else if (formula instanceof False f) {
-            return f;
-        } else {
-            return notChecker(ctlFormulaChecker(formula));
-        }
-
-
+    public Set<State> notChecker(Set<State> states) {
+        return kripke.getStates().stream().filter(state -> !states.contains(state)).collect(Collectors.toSet());
     }
 
 
     /**
-     * And checker
      *
      * @param left
      * @param right
      * @return
      */
-    public Formula andChecker(Formula left, Formula right) {
-
-        if (left instanceof False || right instanceof False) {
-            return False();
-        } else if (left instanceof True && right instanceof True) {
-            return True();
-        } else if (left instanceof CalculableFormula && !(right instanceof CalculableFormula)) {
-            return andChecker(left, ctlFormulaChecker(right));
-        } else if (!(left instanceof CalculableFormula) && right instanceof CalculableFormula) {
-            return andChecker(ctlFormulaChecker(left), right);
-        } else if (left instanceof Atom atomLeftFormula && right instanceof Atom atomRightFormula) {
-            // (a or b) and ( c or d or e) => (ac or ad or ae or bc or bd or be)
-            Set<Set<String>> valsSetSet = new HashSet<>();
-
-            //generate new states
-            atomLeftFormula.getAtomList().forEach(atomLeft -> {
-                atomRightFormula.getAtomList().forEach(atomRight -> {
-                    Set<String> res = Stream.concat(atomLeft.getValueSet().stream(), atomRight.getValueSet().stream()).collect(Collectors.toSet());
-                    //no duplicate exist than add in list
-                    valsSetSet.add(res);
-                });
-            });
-
-            List<Atom> atomList = valsSetSet.stream().map(Atom::new).collect(Collectors.toList());
-            Atom atom = atomList.get(0);
-            atom.setAtomList(atomList);
-            log.info("{} and {} => {}", left, right, atom);
-            return atom;
-        } else {
-            return andChecker(ctlFormulaChecker(left), ctlFormulaChecker(right));
-        }
-
-
+    public Set<State> andChecker(Set<State> left, Set<State> right) {
+        return left.stream().filter(right::contains).collect(Collectors.toSet());
     }
 
     /**
@@ -145,196 +73,77 @@ public class CtlModelChecker {
      * @param right
      * @return
      */
-    public Formula orChecker(Formula left, Formula right) {
-        if (left instanceof True || right instanceof True) {
-            return True();
-        } else if (left instanceof False && right instanceof False) {
-            return False();
-        } else if (left instanceof CalculableFormula && !(right instanceof CalculableFormula)) {
-            return orChecker(left, ctlFormulaChecker(right));
-        } else if (!(left instanceof CalculableFormula) && right instanceof CalculableFormula) {
-            return orChecker(ctlFormulaChecker(left), right);
-        } else if (left instanceof Atom atomLeft && right instanceof Atom atomRight) {
-            Set<Set<String>> valsSetSet = Stream.concat(atomLeft.getAtomList().stream(), atomRight.getAtomList().stream()).map(Atom::getValueSet).collect(Collectors.toSet());
-            List<Atom> atomList = valsSetSet.stream().map(Atom::new).collect(Collectors.toList());
-            Atom atom = atomList.get(0);
-            atom.setAtomList(atomList);
-            log.info("{} or {} => {}", left, right, atom);
-            return atom;
-        } else {
-            return orChecker(ctlFormulaChecker(left), ctlFormulaChecker(right));
-        }
+    public Set<State> orChecker(Set<State> left, Set<State> right) {
+       return Stream.concat(left.stream(),right.stream()).collect(Collectors.toSet());
     }
 
     /**
-     * @param formula
+     * @param states
      * @return
      */
-    public Formula exChecker(Formula formula) {
-        if (formula instanceof Atom atomFormula) {
-            for (Atom atom : atomFormula.getAtomList()) {
-                if (kripke.getTransitions().stream().anyMatch(transition -> transition.getEnd().getAtoms()
-                        .stream().flatMap(atom1 -> atom1.getValueSet().stream()).collect(Collectors.toSet()).containsAll(atom.getValueSet()))) {
-                    log.info("{} => {}", EX.ex(formula), True());
-                    return True();
-                }
-            }
-            log.info("{} => {}", EX.ex(formula), False());
-            return False();
-        } else if (formula instanceof True t) {
-            return t;
-        } else if (formula instanceof False f) {
-            return f;
-        } else {
-            return exChecker(ctlFormulaChecker(formula));
-        }
+    public Set<State> exChecker(Set<State> states) {
+       return kripke.getTransitions().stream().filter(transition -> states.contains(transition.getEnd())).map(Transition::getStart).collect(Collectors.toSet());
     }
 
 
-    public Formula afChecker(Formula formula) {
-            if (formula instanceof Atom atom) {
-                //1.Mark all states satisfying atom  to v
-                Set<State> markedStates = markStates(atom);
-                Set<State> unmarkedStates;
-
-                //atom not exist
-                if (markedStates.isEmpty()) {
-                    return False();
-                }
-                //marked states are all init states so all true
-                if (markedStates.stream().allMatch(State::isInit)) {
-                    return True();
-                }
-
-                unmarkedStates = kripke.getStates().stream().filter(state -> !markedStates.contains(state)).collect(Collectors.toSet());
-                Set<State> start;
-                do {
-                    start = Sets.newHashSet(unmarkedStates);
-                    Iterator<State> it = unmarkedStates.iterator();
-                    while (it.hasNext()) {
-                        State state = it.next();
-                        //2.if there is a state in that has all successor states marked then mark it also
-                        Set<State> endStates = kripke.getTransitions().stream().filter(transition -> transition.getStart().equals(state)).map(Transition::getEnd).collect(Collectors.toSet());
-                        if (markedStates.containsAll(endStates)) {
-                            markedStates.add(state);
-                            it.remove();
-                        }
-                    }
-
-                } while (!start.equals(unmarkedStates));
-
-                return unmarkedStates.isEmpty() ? True() : False();
-            } else if (formula instanceof True t) {
-                return t;
-            } else if (formula instanceof False f) {
-                return f;
-            } else {
-                return afChecker(ctlFormulaChecker(formula));
-            }
+    public Set<State> afChecker(Set<State> states) {
+        Set<State> res = new HashSet<>(states);
+        State s = null;
+        do {
+            s = kripke.getStates().stream().filter(state -> res.containsAll(kripke.getTransitions().stream()
+                    .filter(transition -> transition.getStart().equals(state)).map(Transition::getEnd)
+                    .collect(Collectors.toSet()))).filter(state -> !res.contains(state)).findFirst().orElse(null);
+            if (s != null) res.add(s);
+        } while (s != null);
+        return res;
     }
 
-    public Formula euChecker(Formula left, Formula right) {
-        if (right instanceof True t) {
-            return t;
-        } else if (right instanceof False f) {
-            return f;
-        } else if (left instanceof CalculableFormula  && !(right instanceof CalculableFormula)) {
-            return euChecker(left, ctlFormulaChecker(right));
-        } else if (!(left instanceof CalculableFormula) && right instanceof CalculableFormula) {
-            return euChecker(ctlFormulaChecker(left), right);
-        } else if (!(left instanceof CalculableFormula) && !(right instanceof CalculableFormula)) {
-            return euChecker(ctlFormulaChecker(left), ctlFormulaChecker(right));
-        } else if (left instanceof True && right instanceof Atom) {
-            return right;
-        } else if (left instanceof False && right instanceof Atom) {
-            Set<Set<String>> startStatesVals = new HashSet<>();
-            kripke.getInitStates().forEach(state -> {
-                startStatesVals.add(state.getAtoms().stream().flatMap(atom -> atom.getValueSet().stream()).collect(Collectors.toSet()));
-            });
+    public Set<State> euChecker(Set<State> left, Set<State> right) {
+        Set<State> res = new HashSet<>(right);
+        State s = null;
+        do {
+            s = left.stream().filter(state -> !Collections.disjoint(res,kripke.getTransitions().stream()
+                    .filter(transition -> transition.getStart().equals(state)).map(Transition::getEnd)
+                    .collect(Collectors.toSet()))).filter(state -> !res.contains(state)).findFirst().orElse(null);
+            if (s != null) res.add(s);
+        } while (s != null);
+        return res;
+    }
 
-            Set<Set<String>> atomStatesVals = ((Atom) right).getAtomList().stream().map(Atom::getValueSet).collect(Collectors.toSet());
+    public Set<State> trueChecker(){
+        return kripke.getStates();
+    }
 
-            if (startStatesVals.containsAll(atomStatesVals)) {
-                return True();
-            }
-            return False();
-        } else if (left instanceof Atom leftAtom && right instanceof Atom rightAtom) {
-            //1.Mark all states satisfying rightAtom to v
-            Set<State> rightMarkedStates = markStates(rightAtom);
-            Set<State> leftUnmarkedStates = markStates(leftAtom);
+    public Set<State> falseChecker(){
+        return new HashSet<>();
+    }
 
-            //atom not exist
-            if (rightMarkedStates.isEmpty()) {
-                return False();
-            }
-            //marked states are all init states so all true
-            if (rightMarkedStates.stream().allMatch(State::isInit)) {
-                return True();
-            }
-
-            //2 if there is a state in leftAtom that has some successor state marked then mark it also
-            Set<State> start;
-            do {
-                start = Sets.newHashSet(leftUnmarkedStates);
-                Iterator<State> it = leftUnmarkedStates.iterator();
-                while (it.hasNext()) {
-                    State state = it.next();
-                    Set<State> endStates = kripke.getTransitions().stream().filter(transition -> transition.getStart().equals(state)).map(Transition::getEnd).collect(Collectors.toSet());
-                    for (State endState : endStates) {
-                        if (rightMarkedStates.contains(endState)) {
-                            rightMarkedStates.add(state);
-                            it.remove();
-                            break;
-                        }
-                    }
-                }
-                if (rightMarkedStates.stream().anyMatch(State::isInit)) {
-                    return True();
-                }
-            } while (!start.equals(leftUnmarkedStates));
-
-            if (rightMarkedStates.stream().anyMatch(State::isInit)) {
-                return True();
-            }
-            return False();
+    private Set<State> ctlFormulaChecker(Formula formulaToCheck) {
+        if (formulaToCheck == null){
+            return new HashSet<>();
         }
 
-        log.error("shouldn't not reached");
-        return null;
-
-    }
-
-    private Formula ctlFormulaChecker(Formula formulaToCheck) {
-        if (formulaToCheck instanceof CalculableFormula) {
-            return formulaToCheck;
+        if (formulaToCheck instanceof Atom atom) {
+            return atomChecker(atom);
         } else if (formulaToCheck instanceof NOT not) {
-            return notChecker(not.getFormula());
+            return notChecker(ctlFormulaChecker(not.getFormula()));
         } else if (formulaToCheck instanceof AND and) {
-            return andChecker(and.getLeftFormula(), (and.getRightFormula()));
+            return andChecker(ctlFormulaChecker(and.getLeftFormula()),ctlFormulaChecker(and.getRightFormula()));
         } else if (formulaToCheck instanceof OR or) {
-            return orChecker(or.getLeftFormula(), or.getRightFormula());
+            return orChecker(ctlFormulaChecker(or.getLeftFormula()), ctlFormulaChecker(or.getRightFormula()));
         } else if (formulaToCheck instanceof EX ex) {
-            return exChecker(ex.getFormula());
+            return exChecker(ctlFormulaChecker(ex.getFormula()));
         } else if (formulaToCheck instanceof AF af) {
-            return afChecker(af.getFormula());
+            return afChecker(ctlFormulaChecker(af.getFormula()));
         } else if (formulaToCheck instanceof EU eu) {
-            return euChecker(eu.getLeftFormula(), eu.getRightFormula());
+            return euChecker(ctlFormulaChecker(eu.getLeftFormula()),ctlFormulaChecker(eu.getRightFormula()));
+        }else if (formulaToCheck instanceof True){
+            return trueChecker();
+        }else if (formulaToCheck instanceof False){
+            return falseChecker();
         }
-        log.error("shouldn't not reach here");
-        return null;
-    }
 
-    private Set<State> markStates(Atom atom) {
-        Set<State> markedStates = new HashSet<>();
-        atom.getAtomList().forEach(atom1 -> {
-            kripke.getStates().forEach(state -> {
-                Set<String> stateVals = state.getAtoms().stream().flatMap(atom2 -> atom2.getValueSet().stream()).collect(Collectors.toSet());
-                if (stateVals.containsAll(atom1.getValueSet())) {
-                    markedStates.add(state);
-                }
-            });
-        });
-        return markedStates;
+        return new HashSet<>();
     }
 
 }

@@ -21,14 +21,14 @@ public class CTLApplication {
             CtlModelChecker ctlModelChecker = new CtlModelChecker(kripke);
             boolean flag = true;
             while (flag) {
-                System.out.println("Input your ctl formula please\n");
+                System.out.println("Please Input your ctl formula (press quit to quit the program): \n");
                 BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
                 String ctl = br.readLine();
                 if ("quit".equals(ctl)) {
                     flag = false;
                 }
                 Formula formula = CtlFactory.build(ctl);
-                System.out.println(ctlModelChecker.checkCtlFormula(formula));
+                System.out.println(ctlModelChecker.checkCtlFormula(formula) + "\n");
             }
 
         } catch (Exception e) {

@@ -11,7 +11,9 @@ import lombok.*;
 @EqualsAndHashCode
 @ToString
 public class Transition {
+    //start state
     private State start;
+    //end state
     private State end;
 
     public Transition() {

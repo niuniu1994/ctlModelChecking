@@ -8,7 +8,9 @@ import lombok.*;
 @Setter
 @EqualsAndHashCode
 public class EU implements Formula {
+    @NonNull
     private Formula leftFormula;
+    @NonNull
     private Formula rightFormula;
 
     public static EU eu(Formula leftFormula,Formula rightFormula){

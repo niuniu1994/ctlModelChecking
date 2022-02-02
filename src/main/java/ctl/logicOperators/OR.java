@@ -9,7 +9,9 @@ import lombok.*;
 @Setter
 @EqualsAndHashCode
 public class OR implements Formula {
+    @NonNull
     private Formula leftFormula;
+    @NonNull
     private Formula rightFormula;
 
     public static OR or(Formula leftFormula, Formula rightFormula){

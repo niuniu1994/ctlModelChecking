@@ -13,7 +13,9 @@ import lombok.*;
 @Setter
 @EqualsAndHashCode
 public class AND implements Formula {
+    @NonNull
     private Formula leftFormula;
+    @NonNull
     private Formula rightFormula;
 
     public static AND and(Formula leftFormula, Formula rightFormula) {

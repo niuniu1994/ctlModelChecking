@@ -8,6 +8,7 @@ import lombok.*;
 @Setter
 @EqualsAndHashCode
 public class AF implements Formula {
+    @NonNull
     private Formula formula;
 
     public static AF af(Formula formula){return new AF(formula);}

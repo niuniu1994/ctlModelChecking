@@ -1,46 +1,37 @@
-import com.google.common.collect.Sets;
 import ctl.CtlModelChecker;
-import ctl.Formula;
-import ctl.atoms.Atom;
-
-import static ctl.atoms.True.True;
-import static ctl.logicOperators.AND.*;
-import static ctl.logicOperators.NOT.*;
-import static ctl.atoms.Atom.*;
-import static ctl.logicOperators.OR.*;
-import static ctl.atoms.False.*;
-import ctl.logicOperators.AND;
-import ctl.logicOperators.NOT;
-import ctl.logicOperators.OR;
-
-import ctl.operators.*;
 import kripke.Kripke;
 import kripke.State;
-
-import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+import java.util.Set;
 
-import java.util.Arrays;
+import static ctl.atoms.Atom.atom;
+import static ctl.logicOperators.AND.and;
+import static ctl.operators.AF.af;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 public class CtlTest {
     private CtlModelChecker ctlModelChecker;
-
+    State s0;
+    State s1;
+    State s2;
+    State s3;
     @BeforeEach
     public  void setup(){
 
-        State s0 = new State("s0", true, Arrays.asList("a", "b"));
-        State s1 = new State("s1", Arrays.asList("b"));
-        State s2 = new State("s2", Arrays.asList("b"));
-        State s3 = new State("s3", Arrays.asList("c"));
+        s0 = new State("s0",List.of("a", "b"));
+        s1 = new State("s1", List.of("b"));
+        s2 = new State("s2", List.of("b"));
+        s3 = new State("s3", List.of("c"));
 
         Kripke kripke = new Kripke();
 
-        kripke.setVals(Sets.newHashSet("a","b","c"));
+        kripke.setVals(Set.of("a","b","c"));
         kripke.addInitState(s0);
-        kripke.setStates(Sets.newHashSet(s0,s1,s2,s3));
+        kripke.setStates(Set.of(s0,s1,s2,s3));
         kripke.addTransition(s0, s1);
         kripke.addTransition(s0, s2);
         kripke.addTransition(s1, s1);
@@ -49,105 +40,50 @@ public class CtlTest {
         kripke.addTransition(s2, s3);
         kripke.addTransition(s3, s1);
 
-        kripke.initCombinations();
 
         ctlModelChecker = new CtlModelChecker(kripke);
     }
 
     @Test
     public void notCheckerTest(){
-        Atom atom = new Atom("a");
-        Atom atom2 = new Atom("c");
-
-        atom.getAtomList().add(new Atom("b"));
-        atom2.getAtomList().add(new Atom("a"));
-
-        NOT notFormula = not(atom);
-        Formula res = ctlModelChecker.notChecker(notFormula);
-
-        assertTrue(res instanceof Atom);
-
+        Set<State> res = ctlModelChecker.notChecker(Set.of(s0));
+        assertEquals(Set.of(s1,s2,s3),res);
     }
 
     @Test
     public void andCheckerTest(){
-        // (a or b) and ( c or d or e) => (ac or ad or ae or bc or bd or be)
-
-        Atom atom = new Atom("a");
-        Atom atom2 = new Atom("c");
-
-        AND and = and(atom,atom2);
-        Formula formula = ctlModelChecker.andChecker(and.getLeftFormula(),and.getRightFormula());
-
-        atom.getAtomList().add(new Atom("b"));
-        atom2.getAtomList().add(new Atom("a"));
-
-        and = and(atom,atom2);
-        formula = ctlModelChecker.andChecker(and.getLeftFormula(),and.getRightFormula());
-        assertEquals(4,((Atom)formula).getAtomList().size());
-        assertTrue(((Atom)formula).getAtomList().stream().anyMatch(a -> a.getValueSet().equals(Sets.newHashSet("a","b"))));
-        assertTrue(((Atom)formula).getAtomList().stream().anyMatch(a -> a.getValueSet().equals(Sets.newHashSet("a"))));
-        assertTrue(((Atom)formula).getAtomList().stream().anyMatch(a -> a.getValueSet().equals(Sets.newHashSet("a","c"))));
-        assertTrue(((Atom)formula).getAtomList().stream().anyMatch(a -> a.getValueSet().equals(Sets.newHashSet("b","c"))));
-
-        AND and1 = and(atom,atom);
-        ctlModelChecker.andChecker(and1.getLeftFormula(),and1.getRightFormula());
-
+        Set<State> res = ctlModelChecker.andChecker(Set.of(s0,s1,s2),Set.of(s0));
+        assertEquals(Set.of(s0),res);
     }
 
     @Test
     public void orCheckerTest(){
-        Atom atom = new Atom("a");
-        Atom atom2 = new Atom("c");
-
-        atom.getAtomList().add(new Atom("b"));
-        atom2.getAtomList().add(new Atom("a"));
-
-        OR or = OR.or(atom,atom2);
-        Formula formula = ctlModelChecker.orChecker(atom,atom2);
+        Set<State> res = ctlModelChecker.orChecker(Set.of(s0,s1,s2),Set.of(s0));
+        assertEquals(Set.of(s0,s1,s2),res);
     }
 
-    @Test
-    public void firstPhraseTest(){
-        assertTrue(ctlModelChecker.checkCtlFormula(and(atom("a"),atom("b"))));
-        assertFalse(ctlModelChecker.checkCtlFormula(and(atom("a"),atom("c"))));
-        assertTrue(ctlModelChecker.checkCtlFormula(atom("a")));
-        assertTrue(ctlModelChecker.checkCtlFormula(atom("c")));
-        assertTrue(ctlModelChecker.checkCtlFormula(or(atom("a"),atom("c"))));
-        assertTrue(ctlModelChecker.checkCtlFormula(and(not(atom("a")),atom("c"))));
-    }
 
     @Test
     public void exCheckerTest(){
-        Atom atom = new Atom("a","c");
-        assertEquals(False(),ctlModelChecker.exChecker(EX.ex(atom("a","c"))));
+        Set<State> res = ctlModelChecker.exChecker(Set.of(s0,s1,s2));
+        assertEquals(Set.of(s0,s1,s2,s3),res);
     }
 
     @Test
     public void afCheckerTest(){
-        assertEquals(False(),ctlModelChecker.afChecker(AF.af(atom("c"))));
-        assertEquals(True(),ctlModelChecker.afChecker(AF.af(atom("a","b"))));
-        assertEquals(False(),ctlModelChecker.afChecker(AF.af(atom("a","c"))));
+        Set<State> res = ctlModelChecker.afChecker(Set.of(s0,s1,s2));
+        assertEquals(Set.of(s0,s1,s2,s3),res);
     }
 
-    @Test
-    public void axCheckerTest(){
-        assertEquals(true,ctlModelChecker.checkCtlFormula(AX.ax(and(atom("a"),atom("b")))));
-    }
 
     @Test
     public void euCheckTest(){
-        assertEquals(False(),ctlModelChecker.euChecker(False(),atom("c")));
-        assertEquals(True(),ctlModelChecker.euChecker(atom("b"),atom("c")));
-        assertEquals(True(),ctlModelChecker.euChecker(atom("a"),atom("b")));
-        assertEquals(False(),ctlModelChecker.euChecker(atom("a"),atom("c")));
-        assertEquals(True(),ctlModelChecker.euChecker(and(atom("a"),atom("b")),atom("b")));
+        Set<State> res = ctlModelChecker.euChecker(Set.of(s0,s1,s2),Set.of(s3));
+        assertEquals(Set.of(s0,s1,s2,s3),res);
     }
 
     @Test
     public void ctlModelChecker(){
-        assertEquals(false,ctlModelChecker.checkCtlFormula(AU.au(atom("b"),atom("c"))));
-        assertEquals(true,ctlModelChecker.checkCtlFormula(EU.eu(atom("b"),atom("c"))));
-
+        assertEquals(List.of("s0"),ctlModelChecker.checkCtlFormula(af(and(atom("a"),atom("b")))));
     }
 }

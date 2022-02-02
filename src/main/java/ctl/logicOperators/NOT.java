@@ -9,6 +9,7 @@ import lombok.*;
 @Setter
 @EqualsAndHashCode
 public class NOT implements Formula {
+    @NonNull
     private Formula formula;
 
     public static NOT not(Formula formula){
